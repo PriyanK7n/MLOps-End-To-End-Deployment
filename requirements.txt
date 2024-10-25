@@ -6,4 +6,4 @@ scikit-learn
 catboost
 xgboost
 Flask
--e .
+# -e . # we uncomment this in the last
