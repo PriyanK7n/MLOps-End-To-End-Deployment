@@ -4,6 +4,7 @@ seaborn
 matplotlib
 scikit-learn
 catboost
-xgboost
 Flask
+dill
 # -e . # we uncomment this in the last
+# xgboost --no-binary :all:
