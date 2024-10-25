@@ -1,0 +1,7 @@
+[ 2024-10-25 17:34:27,600 ] 97 werkzeug - WARNING -  * Debugger is active!
+[ 2024-10-25 17:34:27,619 ] 97 werkzeug - INFO -  * Debugger PIN: 136-181-881
+[ 2024-10-25 17:34:35,111 ] 97 werkzeug - INFO - 127.0.0.1 - - [25/Oct/2024 17:34:35] "[33mGET /index.html?param=true HTTP/1.1[0m" 404 -
+[ 2024-10-25 17:34:42,615 ] 97 werkzeug - INFO - 127.0.0.1 - - [25/Oct/2024 17:34:42] "[33mGET /home.html?param=true HTTP/1.1[0m" 404 -
+[ 2024-10-25 17:34:45,025 ] 97 werkzeug - INFO - 127.0.0.1 - - [25/Oct/2024 17:34:45] "[33mGET /home.html?param=true HTTP/1.1[0m" 404 -
+[ 2024-10-25 17:34:51,291 ] 97 werkzeug - INFO - 127.0.0.1 - - [25/Oct/2024 17:34:51] "GET /?param=true HTTP/1.1" 200 -
+[ 2024-10-25 17:35:04,513 ] 97 werkzeug - INFO -  * Detected change in '/Users/priyank/Desktop/Job-Resume/Interview-Preparation/MLOPs/MLOps-Project/app.py', reloading

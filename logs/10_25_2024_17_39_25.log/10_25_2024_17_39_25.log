@@ -1,0 +1,8 @@
+[ 2024-10-25 17:39:25,928 ] 97 werkzeug - WARNING -  * Debugger is active!
+[ 2024-10-25 17:39:25,952 ] 97 werkzeug - INFO -  * Debugger PIN: 136-181-881
+[ 2024-10-25 17:41:35,159 ] 97 werkzeug - INFO - 127.0.0.1 - - [25/Oct/2024 17:41:35] "[35m[1mPOST /predictdata?param=true HTTP/1.1[0m" 500 -
+[ 2024-10-25 17:41:35,231 ] 97 werkzeug - INFO - 127.0.0.1 - - [25/Oct/2024 17:41:35] "[36mGET /predictdata?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+[ 2024-10-25 17:41:35,232 ] 97 werkzeug - INFO - 127.0.0.1 - - [25/Oct/2024 17:41:35] "[36mGET /predictdata?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+[ 2024-10-25 17:41:35,251 ] 97 werkzeug - INFO - 127.0.0.1 - - [25/Oct/2024 17:41:35] "GET /predictdata?__debugger__=yes&cmd=resource&f=console.png&s=5IbSNYFCpIPwGuSfZe3q HTTP/1.1" 200 -
+[ 2024-10-25 17:41:35,424 ] 97 werkzeug - INFO - 127.0.0.1 - - [25/Oct/2024 17:41:35] "[36mGET /predictdata?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+[ 2024-10-25 17:41:59,151 ] 97 werkzeug - INFO -  * Detected change in '/Users/priyank/Desktop/Job-Resume/Interview-Preparation/MLOPs/MLOps-Project/src/pipeline/predict_pipeline.py', reloading

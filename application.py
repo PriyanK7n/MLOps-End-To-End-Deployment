@@ -1,3 +1,4 @@
+# File created to deploy application in awsbeanstalk
 from flask import Flask, request, render_template
 import numpy as np
 import pandas as pd
