@@ -1,67 +1,45 @@
-# This workflow will build and push a new container image to Amazon ECR,
-# and then will deploy a new task definition to Amazon ECS, when there is a push to the "main" branch.
-#
-# To use this workflow, you will need to complete the following set-up steps:
-#
-# 1. Create an ECR repository to store your images.
-#    For example: `aws ecr create-repository --repository-name my-ecr-repo --region us-east-2`.
-#    Replace the value of the `ECR_REPOSITORY` environment variable in the workflow below with your repository's name.
-#    Replace the value of the `AWS_REGION` environment variable in the workflow below with your repository's region.
-#
-# 2. Create an ECS task definition, an ECS cluster, and an ECS service.
-#    For example, follow the Getting Started guide on the ECS console:
-#      https://us-east-2.console.aws.amazon.com/ecs/home?region=us-east-2#/firstRun
-#    Replace the value of the `ECS_SERVICE` environment variable in the workflow below with the name you set for the Amazon ECS service.
-#    Replace the value of the `ECS_CLUSTER` environment variable in the workflow below with the name you set for the cluster.
-#
-# 3. Store your ECS task definition as a JSON file in your repository.
-#    The format should follow the output of `aws ecs register-task-definition --generate-cli-skeleton`.
-#    Replace the value of the `ECS_TASK_DEFINITION` environment variable in the workflow below with the path to the JSON file.
-#    Replace the value of the `CONTAINER_NAME` environment variable in the workflow below with the name of the container
-#    in the `containerDefinitions` section of the task definition.
-#
-# 4. Store an IAM user access key in GitHub Actions secrets named `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
-#    See the documentation for each action used below for the recommended IAM policies for this IAM user,
-#    and best practices on handling the access key credentials.
+# This workflow builds and pushes a new Docker container image to Amazon ECR
+# and deploys it to Amazon ECS whenever there is a push to the "main" branch.
 
-name: Amazon ECS Workflow
+# Prerequisites:
+# 1. Create an ECR repository to store your images:
+#    Example command: `aws ecr create-repository --repository-name my-ecr-repo --region us-east-2`.
+#    Replace `ECR_REPOSITORY` and `AWS_REGION` environment variables with your repository's name and region.
+# 2. Store IAM user access keys in GitHub Actions secrets as `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
+#    This user should have the appropriate permissions for ECR and ECS.
+#    See AWS and GitHub documentation for best practices on handling these credentials.
+
+
+name: Amazon ECR CI/CD Workflow
 
 on:
   push:
     branches: 
-        - main # pass it as list for multiple branches ['']
+        - main # Specify the branches that should trigger this workflow, e.g., ['main', 'dev'] passed for multiple branches
     paths-ignore:
-        - 'README.md'
-
-env:
-  AWS_REGION: MY_AWS_REGION                   # set this to your preferred AWS region, e.g. us-west-1
-  ECR_REPOSITORY: MY_ECR_REPOSITORY           # set this to your Amazon ECR repository name
-  ECS_SERVICE: MY_ECS_SERVICE                 # set this to your Amazon ECS service name
-  ECS_CLUSTER: MY_ECS_CLUSTER                 # set this to your Amazon ECS cluster name
-  ECS_TASK_DEFINITION: MY_ECS_TASK_DEFINITION # set this to the path to your Amazon ECS task definition
-                                               # file, e.g. .aws/task-definition.json
-  CONTAINER_NAME: MY_CONTAINER_NAME           # set this to the name of the container in the
-                                               # containerDefinitions section of your task definition
+        - 'README.md'  # Ignore README changes to avoid unnecessary deployments
 
 permissions:
     id-token: write
     contents: read
 
 jobs:
-    # Job 1
+    # Job 1: Continuous Integration
     integration:
         name: Continuous Integration
         runs-on: ubuntu-latest
         steps:
+          # Step 1: Check out code from the repository
           - name: Checkout Code
             uses: actions/checkout@v3
-
+          # Step 2: Lint the code
           - name: Lint code
             run: echo "Linting repository"
-
+          # Step 3: Run unit tests if any 
           - name: Run unit tests
             run: echo "Running unit tests"
-    # Job 2: Push to Private Docker Images to AWS ECR Repo
+
+    # Job 2: Push Private Docker Images to AWS ECR Repo
     # steps:
     # - name: Checkout
     #   uses: actions/checkout@v4
@@ -105,31 +83,34 @@ jobs:
     #     service: ${{ env.ECS_SERVICE }}
     #     cluster: ${{ env.ECS_CLUSTER }}
     #     wait-for-service-stability: true
+
+    
+    # Job 2: Continuous Delivery - Build and Push Docker Image to AWS ECR
     build-and-push-ecr-image:
         name: Continuous Delivery
         needs: integration
         runs-on: ubuntu-latest
         steps:
-            # 1
+            # Step 1: Check out code from the repository
           - name: Checkout Code
             uses: actions/checkout@v3
-            # 2
+            # Step 2: Install utilities (jq and unzip)
           - name: Install Utilities
             run: |
               sudo apt-get update
               sudo apt-get install -y jq unzip
-            # 3
+            # Step 3: Configure AWS credentials for authentication
           - name: Configure AWS credentials
             uses: aws-actions/configure-aws-credentials@v1
             with:
               aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
               aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
               aws-region: ${{ secrets.AWS_REGION }}
-            # 4
+            # Step 4: Log in to Amazon ECR
           - name: Login to Amazon ECR
             id: login-ecr
             uses: aws-actions/amazon-ecr-login@v1
-            # 5
+            # Step 5: Build, tag, and push Docker image to ECR
           - name: Build, tag, and push image to Amazon ECR
             id: build-image
             env:
@@ -143,36 +124,42 @@ jobs:
               docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . 
               docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
               echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-    # Job 3
+    
+    # Job 3: Continuous Deployment - Deploy the Image from ECR to ECS
     Continuous-Deployment:
       needs: build-and-push-ecr-image
       runs-on: self-hosted
       steps: 
+        # Step 1: Check out code from the repository
        - name: Checkout
          uses: actions/checkout@v3
-
+        # Step 2: Configure AWS credentials for ECS deployment
        - name: Configure AWS credentials
          uses: aws-actions/configure-aws-credentials@v1
          with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-
+        # Step 3: Log in to Amazon ECR
        - name: Login to Amazon ECR
          id: login-ecr
          uses: aws-actions/amazon-ecr-login@v1
-
+        # Step 4: Pull the latest Docker image from ECR
        - name: Pull latest images
          run: |
             docker pull ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
             
+        ## Optional Step: Stop and remove the container if it's already running
         # - name: Stop and remove  container if running
         #   run: |
         #    docker ps -q --filter "name=mltest" | grep -q . && docker stop mltest && docker rm -fv mltest
         
+        # Step 5: Run the Docker container to serve users
        - name: Run Docker Image to serve users
          run: |
             docker run -d -p 8080:8080 --ipc="host" --name=mltest -e 'AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}' -e 'AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}' -e 'AWS_REGION=${{ secrets.AWS_REGION }}'  ${{secrets.AWS_ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+        
+        # Step 6: Clean up previous images and containers to free up space
        - name: Clean previous images and containers
          run: |
             docker system prune -f
